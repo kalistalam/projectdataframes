@@ -1,0 +1,30 @@
+import os
+print("Current working directory:", os.getcwd())
+
+
+import pandas as pd
+
+
+PatientNumber=0
+Trial = 0
+df_placebo_baseline = pd.DataFrame ()
+
+for x in range (5):
+    PatientNumber = x+10001
+    PatientFile = "Patient_" + str(PatientNumber)
+    
+    df = pd.read_excel('Patient_Hemodynamic_Data.xlsx', sheet_name= PatientFile, index_col='Assessment')
+    df.drop('Week12_LOCF', axis=1, inplace=True)
+
+
+#turn into row df only baseline
+    Trial = str(df['Treatment_Group'].values [0])
+    filtered = df[df['Treatment_Group'] == Trial]
+    filtered.drop(columns = ['Treatment_Group','Week12'], inplace=True)
+    filtered.rename(columns={'Baseline' : PatientFile}, inplace=True)
+    filtered.loc['Trial'] = [Trial]
+    filtered= filtered.T
+    df_placebo_baseline = pd.concat([df_placebo_baseline, filtered])
+
+print (df_placebo_baseline)
+  
