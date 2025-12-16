@@ -48,7 +48,7 @@ def split_by_subgroup(df: pd.DataFrame) -> dict:
     return subgroup_tables
 
   
-def main():
+def load_data():
 
     all_baseline = {}
     all_week12 = {}
@@ -100,18 +100,27 @@ def run_logistic_regression(whole_df, threshold=5, target_col='Mean Pulmonary Ar
         y_prob (np.ndarray): Predicted probabilities.
         coeff_df (pd.DataFrame): DataFrame of feature coefficients.
     """
-   
-    whole_df= main()
+    
+    print("Defining X...")
     # Features = all columns except the target
-    X = whole_df.drop(columns=[target_col])
+    X : pd.DataFrame
+    X = whole_df.drop(columns=[target_col] + ['sub_group', 'Body Surface Area'])
+    # X = X.fillna(X.mean(),axis=0)
+    X = X.dropna(axis=0)
     
+    print("Features used:\n", X.columns)
+    # raise ValueError("Debugging stop")
+    
+    print("Defining y...")
     # Binary target
-    y = (whole_df[target_col] > threshold).astype(int)
+    y = (whole_df.loc[X.index][target_col] > threshold).astype(int)
     
+    print("Fitting logistic regression model...")
     # Fit logistic regression
     model = LogisticRegression(max_iter=1000)
     model.fit(X, y)
     
+    print("Making predictions...")
     # Predictions
     y_pred = model.predict(X)
     y_prob = model.predict_proba(X)
@@ -128,7 +137,6 @@ def run_logistic_regression(whole_df, threshold=5, target_col='Mean Pulmonary Ar
 
     
 
-  
 if __name__== "__main__":
-    main()
-    run_logistic_regression()   
+    df = load_data()
+    run_logistic_regression(df)   
